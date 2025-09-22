@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>센서 데이터 대시보드</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌡️ 센서 데이터 대시보드</h1>
+            <div class="header-controls">
+                <button class="refresh-btn" onclick="refreshData()">새로고침</button>
+                <button class="realtime-btn" id="realtimeBtn" onclick="toggleRealtime()">실시간 갱신 중지</button>
+            </div>
+            <div class="status-info">
+                <div class="last-updated" id="lastUpdated">마지막 업데이트: -</div>
+                <div class="realtime-status" id="realtimeStatus">🟢 실시간 갱신 중 (5초 간격)</div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3>CO₂ 농도 (ppm)</h3>
+                <div class="chart-container">
+                    <canvas id="co2Chart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>온도 & 습도</h3>
+                <div class="chart-container">
+                    <canvas id="tempHumidityChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>PM2.5 농도 (μg/m³)</h3>
+                <div class="chart-container">
+                    <canvas id="pm25Chart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>시간별 평균값 (최근 24시간)</h3>
+                <div class="chart-container">
+                    <canvas id="hourlyAvgChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
