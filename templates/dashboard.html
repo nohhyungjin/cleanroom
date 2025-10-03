@@ -15,6 +15,7 @@
             <div class="header-controls">
                 <button class="refresh-btn" onclick="refreshData()">새로고침</button>
                 <button class="realtime-btn" id="realtimeBtn" onclick="toggleRealtime()">실시간 갱신 중지</button>
+                <button class="settings-btn" onclick="toggleSettings()">⚙️ 설정</button>
             </div>
             <div class="status-info">
                 <div class="last-updated" id="lastUpdated">마지막 업데이트: -</div>
@@ -52,6 +53,69 @@
             </div>
         </div>
     </div>
+
+    <!-- 설정 사이드 패널 -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <h3>⚙️ 설정</h3>
+            <button class="close-btn" onclick="toggleSettings()">×</button>
+        </div>
+        
+        <div class="settings-content">
+            <!-- EWMA 설정 -->
+            <div class="setting-group">
+                <h4>📊 EWMA 설정</h4>
+                <div class="setting-item">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="ewmaToggle" checked>
+                        <span class="toggle-slider"></span>
+                        EWMA 표시
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label for="ewmaAlpha">EWMA α값: <span id="ewmaAlphaValue">0.3</span></label>
+                    <input type="range" id="ewmaAlpha" min="0.1" max="0.9" step="0.1" value="0.3" class="slider">
+                </div>
+            </div>
+
+            <!-- 알림 조건 설정 -->
+            <div class="setting-group">
+                <h4>🔔 알림 조건</h4>
+                <div class="setting-item">
+                    <label for="co2Threshold">CO₂ 기준값 (ppm):</label>
+                    <input type="number" id="co2Threshold" value="1000" min="400" max="5000" class="number-input">
+                </div>
+                <div class="setting-item">
+                    <label for="tempMin">온도 최소값 (°C):</label>
+                    <input type="number" id="tempMin" value="18" min="0" max="50" class="number-input">
+                </div>
+                <div class="setting-item">
+                    <label for="tempMax">온도 최대값 (°C):</label>
+                    <input type="number" id="tempMax" value="26" min="0" max="50" class="number-input">
+                </div>
+                <div class="setting-item">
+                    <label for="humidityMin">습도 최소값 (%):</label>
+                    <input type="number" id="humidityMin" value="30" min="0" max="100" class="number-input">
+                </div>
+                <div class="setting-item">
+                    <label for="humidityMax">습도 최대값 (%):</label>
+                    <input type="number" id="humidityMax" value="50" min="0" max="100" class="number-input">
+                </div>
+                <div class="setting-item">
+                    <label for="pm25Threshold">PM2.5 기준값 (μg/m³):</label>
+                    <input type="number" id="pm25Threshold" value="35" min="0" max="200" class="number-input">
+                </div>
+            </div>
+
+            <div class="settings-actions">
+                <button class="save-btn" onclick="saveSettings()">저장</button>
+                <button class="reset-btn" onclick="resetSettings()">초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 설정 패널 오버레이 -->
+    <div class="settings-overlay" id="settingsOverlay" onclick="toggleSettings()"></div>
 
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>

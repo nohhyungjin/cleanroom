@@ -3,8 +3,22 @@ let realtimeInterval;
 let lastDataTimestamp = null;
 let isRealtimeActive = true;
 
-// EWMA 계산 함수 (α=0.3)
-function calculateEWMA(data, alpha = 0.3) {
+// 설정 관련 변수
+let settings = {
+    ewmaEnabled: true,
+    ewmaAlpha: 0.3,
+    thresholds: {
+        co2: 1000,
+        tempMin: 18,
+        tempMax: 26,
+        humidityMin: 30,
+        humidityMax: 50,
+        pm25: 35
+    }
+};
+
+// EWMA 계산 함수 (설정값 사용)
+function calculateEWMA(data, alpha = settings.ewmaAlpha) {
     if (data.length === 0) return [];
     
     const ewma = [];
@@ -411,46 +425,46 @@ function showError(message) {
     }, 5000);
 }
 
-// 이상치 감지 함수
+// 이상치 감지 함수 (설정값 사용)
 function checkAnomalies(data) {
     const anomalies = [];
 
     // CO₂ 수치 확인
-    if (data.co2_ppm > 1000) {
+    if (data.co2_ppm > settings.thresholds.co2) {
         anomalies.push({
             type: 'warning',
             title: 'CO₂ 경고',
-            text: `CO₂ 수치가 ${data.co2_ppm}ppm으로 너무 높습니다! (기준: 1000ppm 이하)`,
+            text: `CO₂ 수치가 ${data.co2_ppm}ppm으로 너무 높습니다! (기준: ${settings.thresholds.co2}ppm 이하)`,
             icon: 'warning'
         });
     }
 
     // 온도 확인
-    if (data.temperature < 18 || data.temperature > 26) {
+    if (data.temperature < settings.thresholds.tempMin || data.temperature > settings.thresholds.tempMax) {
         anomalies.push({
             type: 'error',
             title: '온도 이상 감지',
-            text: `온도가 ${data.temperature}°C로 비정상입니다! (기준: 18-26°C)`,
+            text: `온도가 ${data.temperature}°C로 비정상입니다! (기준: ${settings.thresholds.tempMin}-${settings.thresholds.tempMax}°C)`,
             icon: 'error'
         });
     }
 
     // 습도 확인
-    if (data.humidity < 30 || data.humidity > 50) {
+    if (data.humidity < settings.thresholds.humidityMin || data.humidity > settings.thresholds.humidityMax) {
         anomalies.push({
             type: 'warning',
             title: '습도 이상 감지',
-            text: `습도가 ${data.humidity}%로 비정상입니다! (기준: 30-50%)`,
+            text: `습도가 ${data.humidity}%로 비정상입니다! (기준: ${settings.thresholds.humidityMin}-${settings.thresholds.humidityMax}%)`,
             icon: 'warning'
         });
     }
 
-    // PM2.5 확인 (추가)
-    if (data.pm2_5 > 35) {
+    // PM2.5 확인
+    if (data.pm2_5 > settings.thresholds.pm25) {
         anomalies.push({
             type: 'info',
             title: 'PM2.5 주의',
-            text: `PM2.5 수치가 ${data.pm2_5}μg/m³로 높습니다! (기준: 35μg/m³ 이하)`,
+            text: `PM2.5 수치가 ${data.pm2_5}μg/m³로 높습니다! (기준: ${settings.thresholds.pm25}μg/m³ 이하)`,
             icon: 'info'
         });
     }
@@ -579,8 +593,164 @@ function refreshData() {
     fetchData();
 }
 
+// 설정 패널 관련 함수들
+function toggleSettings() {
+    const panel = document.getElementById('settingsPanel');
+    const overlay = document.getElementById('settingsOverlay');
+    
+    if (panel.classList.contains('show')) {
+        panel.classList.remove('show');
+        overlay.classList.remove('show');
+    } else {
+        panel.classList.add('show');
+        overlay.classList.add('show');
+        loadSettingsToUI();
+    }
+}
+
+function loadSettingsToUI() {
+    // EWMA 설정 로드
+    document.getElementById('ewmaToggle').checked = settings.ewmaEnabled;
+    document.getElementById('ewmaAlpha').value = settings.ewmaAlpha;
+    document.getElementById('ewmaAlphaValue').textContent = settings.ewmaAlpha;
+    
+    // 알림 조건 로드
+    document.getElementById('co2Threshold').value = settings.thresholds.co2;
+    document.getElementById('tempMin').value = settings.thresholds.tempMin;
+    document.getElementById('tempMax').value = settings.thresholds.tempMax;
+    document.getElementById('humidityMin').value = settings.thresholds.humidityMin;
+    document.getElementById('humidityMax').value = settings.thresholds.humidityMax;
+    document.getElementById('pm25Threshold').value = settings.thresholds.pm25;
+}
+
+function saveSettings() {
+    // UI에서 설정값 읽어오기
+    settings.ewmaEnabled = document.getElementById('ewmaToggle').checked;
+    settings.ewmaAlpha = parseFloat(document.getElementById('ewmaAlpha').value);
+    
+    settings.thresholds.co2 = parseInt(document.getElementById('co2Threshold').value);
+    settings.thresholds.tempMin = parseInt(document.getElementById('tempMin').value);
+    settings.thresholds.tempMax = parseInt(document.getElementById('tempMax').value);
+    settings.thresholds.humidityMin = parseInt(document.getElementById('humidityMin').value);
+    settings.thresholds.humidityMax = parseInt(document.getElementById('humidityMax').value);
+    settings.thresholds.pm25 = parseInt(document.getElementById('pm25Threshold').value);
+    
+    // 로컬 스토리지에 저장
+    localStorage.setItem('dashboardSettings', JSON.stringify(settings));
+    
+    // 차트 업데이트
+    updateChartsWithNewSettings();
+    
+    // 설정 패널 닫기
+    toggleSettings();
+    
+    // 저장 완료 알림
+    Swal.fire({
+        title: '설정 저장됨',
+        text: '설정이 성공적으로 저장되었습니다.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+    });
+}
+
+function resetSettings() {
+    // 기본값으로 초기화
+    settings = {
+        ewmaEnabled: true,
+        ewmaAlpha: 0.3,
+        thresholds: {
+            co2: 1000,
+            tempMin: 18,
+            tempMax: 26,
+            humidityMin: 30,
+            humidityMax: 50,
+            pm25: 35
+        }
+    };
+    
+    // UI 업데이트
+    loadSettingsToUI();
+    
+    // 로컬 스토리지에서 제거
+    localStorage.removeItem('dashboardSettings');
+    
+    Swal.fire({
+        title: '설정 초기화됨',
+        text: '설정이 기본값으로 초기화되었습니다.',
+        icon: 'info',
+        timer: 2000,
+        showConfirmButton: false
+    });
+}
+
+function updateChartsWithNewSettings() {
+    // EWMA 표시/숨김 토글
+    const ewmaDatasets = [
+        co2Chart.data.datasets[1], // CO2 EWMA
+        tempHumidityChart.data.datasets[1], // 온도 EWMA
+        tempHumidityChart.data.datasets[3], // 습도 EWMA
+        pm25Chart.data.datasets[1] // PM2.5 EWMA
+    ];
+    
+    ewmaDatasets.forEach(dataset => {
+        dataset.hidden = !settings.ewmaEnabled;
+    });
+    
+    // 모든 차트 업데이트
+    co2Chart.update();
+    tempHumidityChart.update();
+    pm25Chart.update();
+    
+    // 데이터가 있다면 EWMA 재계산
+    if (co2Chart.data.labels.length > 0) {
+        const co2Data = co2Chart.data.datasets[0].data;
+        const temperatureData = tempHumidityChart.data.datasets[0].data;
+        const humidityData = tempHumidityChart.data.datasets[2].data;
+        const pm25Data = pm25Chart.data.datasets[0].data;
+        
+        // 새로운 α값으로 EWMA 재계산
+        co2Chart.data.datasets[1].data = calculateEWMA(co2Data);
+        tempHumidityChart.data.datasets[1].data = calculateEWMA(temperatureData);
+        tempHumidityChart.data.datasets[3].data = calculateEWMA(humidityData);
+        pm25Chart.data.datasets[1].data = calculateEWMA(pm25Data);
+        
+        // 차트 업데이트
+        co2Chart.update();
+        tempHumidityChart.update();
+        pm25Chart.update();
+    }
+}
+
+function loadSettingsFromStorage() {
+    const savedSettings = localStorage.getItem('dashboardSettings');
+    if (savedSettings) {
+        try {
+            const parsedSettings = JSON.parse(savedSettings);
+            settings = { ...settings, ...parsedSettings };
+        } catch (error) {
+            console.error('설정 로드 오류:', error);
+        }
+    }
+}
+
+// EWMA α값 슬라이더 이벤트
+document.addEventListener('DOMContentLoaded', function() {
+    const ewmaAlphaSlider = document.getElementById('ewmaAlpha');
+    const ewmaAlphaValue = document.getElementById('ewmaAlphaValue');
+    
+    if (ewmaAlphaSlider && ewmaAlphaValue) {
+        ewmaAlphaSlider.addEventListener('input', function() {
+            ewmaAlphaValue.textContent = this.value;
+        });
+    }
+});
+
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
+    // 저장된 설정 로드
+    loadSettingsFromStorage();
+    
     initCharts();
     fetchData();
     
