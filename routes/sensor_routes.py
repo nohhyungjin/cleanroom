@@ -11,7 +11,7 @@ def get_latest_data():
         with db_manager.get_cursor() as (cursor, connection):
             query = """
             SELECT id, timestamp, co2_ppm, temperature, humidity, 
-                   pm1_0, pm2_5, pm10, pressure, altitude
+                   pm1_0, pm2_5, pm10
             FROM sensor_data 
             ORDER BY timestamp DESC 
             LIMIT 1
@@ -40,7 +40,7 @@ def get_recent_data():
         with db_manager.get_cursor() as (cursor, connection):
             query = """
             SELECT id, timestamp, co2_ppm, temperature, humidity, 
-                   pm1_0, pm2_5, pm10, pressure, altitude
+                   pm1_0, pm2_5, pm10
             FROM sensor_data 
             ORDER BY timestamp DESC 
             LIMIT %s

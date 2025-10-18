@@ -101,7 +101,7 @@ connection = mysql.connector.connect(
 테스트를 위해 샘플 데이터를 삽입할 수 있습니다:
 
 ```sql
-INSERT INTO sensor_data (co2_ppm, temperature, humidity, pm1_0, pm2_5, pm10, pressure, altitude) VALUES
+INSERT INTO sensor_data (co2_ppm, temperature, humidity, pm1_0, pm2_5, pm10) VALUES
 (400, 22.5, 45, 10, 15, 25, 1013.25, 100),
 (420, 23.1, 47, 12, 18, 28, 1012.80, 102),
 (380, 21.8, 43, 8, 12, 22, 1014.10, 98);
